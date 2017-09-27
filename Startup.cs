@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Rewrite;
 using System.Net;
 using Swashbuckle.AspNetCore.Swagger;
 using SignalRStuff.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace SignalRStuff
 {
@@ -49,15 +50,21 @@ namespace SignalRStuff
         {
             // if (env.IsDevelopment())
             // {
-                app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage();
 
-                // Perform automatic migration
-                using (var context = provider.GetRequiredService<SignalRStuffContext>())
-                {
-                    context.Database.Migrate();
-                    DbInitializer.Initialize(context);
-                }
+            // Perform automatic migration
+            using (var context = provider.GetRequiredService<SignalRStuffContext>())
+            {
+                context.Database.Migrate();
+                DbInitializer.Initialize(context);
+            }
             // }
+
+            // Forward by reverse proxy
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
 
             // Setup rewrite rules to allow page refreshes to work with Angular
             app.UseRewriter(new RewriteOptions()
@@ -75,13 +82,13 @@ namespace SignalRStuff
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });                      
+            });
 
             // Use the SignalR service...
             app.UseSignalR(routes =>
             {
                 routes.MapHub<Chat>("chat");
-            });  
+            });
         }
     }
 }
