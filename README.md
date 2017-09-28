@@ -1,3 +1,4 @@
+````
 This worked on a virtual machine:
 
 Distributor ID:	Ubuntu
@@ -29,3 +30,4 @@ server {
         proxy_set_header Connection "upgrade";
     }
 }
+````
